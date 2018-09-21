@@ -1,17 +1,17 @@
 apiVersion: apps/v1beta1
 kind: Deployment
 metadata:
-  name: elasticsearch
+  name: es-master
   labels:
     component: elasticsearch
-    role: data
+    role: master
 spec:
-  replicas: 1
+  replicas: 3
   template:
     metadata:
       labels:
         component: elasticsearch
-        role: data
+        role: master
     spec:
       initContainers:
       - name: init-sysctl
@@ -23,9 +23,11 @@ spec:
         securityContext:
           privileged: true
       containers:
-      - name: elasticsearch
-        image: docker.elastic.co/elasticsearch/elasticsearch:6.3.2
+      - name: es-master
+        image: quay.io/pires/docker-elasticsearch-kubernetes:6.3.2
         env:
+        - name: "NETWORK_HOST"
+          value: "_eth0_"
         - name: NAMESPACE
           valueFrom:
             fieldRef:
@@ -36,16 +38,18 @@ spec:
               fieldPath: metadata.name
         - name: CLUSTER_NAME
           value: myesdb
+        - name: NUMBER_OF_MASTERS
+          value: "2"
         - name: NODE_MASTER
           value: "true"
+        - name: NODE_INGEST
+          value: "false"
         - name: NODE_DATA
-          value: "true"
+          value: "false"
         - name: HTTP_ENABLE
-          value: "true"
+          value: "false"
         - name: ES_JAVA_OPTS
           value: -Xms256m -Xmx256m
-        - name: NETWORK_HOST
-          value: _eth0_
         - name: PROCESSORS
           valueFrom:
             resourceFieldRef:
@@ -56,31 +60,17 @@ spec:
           limits:
             cpu: 1
         ports:
-        - containerPort: 9200
-          name: http
         - containerPort: 9300
           name: transport
+        livenessProbe:
+          tcpSocket:
+            port: transport
+          initialDelaySeconds: 20
+          periodSeconds: 10
         volumeMounts:
         - name: storage
           mountPath: /data
       volumes:
           - emptyDir:
               medium: ""
-            name: storage
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: elasticsearch
-  labels:
-    k8s-addon: logging-elasticsearch.addons.k8s.io
-    k8s-app: elasticsearch
-    kubernetes.io/cluster-service: "true"
-    kubernetes.io/name: "Elasticsearch"
-spec:
-  ports:
-  - port: 9200
-    protocol: TCP
-    targetPort: db
-  selector:
-    k8s-app: elasticsearch
+            name: "storage"
