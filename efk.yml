@@ -201,7 +201,7 @@ spec:
           name: transport
           protocol: TCP
         volumeMounts:
-        - name: storage
+        - name: es-persistent-storage
           mountPath: /data
         env:
         - name: "NETWORK_HOST"
@@ -212,10 +212,16 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: metadata.namespace
-      volumes:
-      - name: "storage"
-        emptyDir:
-          medium: ""
+  volumeClaimTemplates:
+  - metadata:
+      name: es-persistent-storage
+      annotations:
+        volume.beta.kubernetes.io/storage-class: "default"
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 20Gi
 
 ---
 
@@ -275,6 +281,7 @@ metadata:
     kubernetes.io/name: "Kibana"
 spec:
   ports:
+  type: NodePort
   - port: 5601
     protocol: TCP
     targetPort: ui
