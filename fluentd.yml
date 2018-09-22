@@ -482,6 +482,7 @@ metadata:
 subjects:
 - kind: ServiceAccount
   name: fluentd-es
+  namespace: default
   apiGroup: ""
 roleRef:
   kind: ClusterRole
