@@ -527,8 +527,9 @@ spec:
         resources:
           limits:
             memory: 500Mi
+            cpu: 1
           requests:
-            cpu: 100m
+            cpu: 0.25
             memory: 200Mi
         volumeMounts:
         - name: varlog
