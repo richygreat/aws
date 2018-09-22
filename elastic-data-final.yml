@@ -45,9 +45,9 @@ spec:
               resource: limits.cpu
         resources:
           requests:
-            cpu: 0.25
+            cpu: 100m
           limits:
-            cpu: 1
+            cpu: 500m
         ports:
         - containerPort: 9200
           name: db
