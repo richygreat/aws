@@ -32,10 +32,10 @@ spec:
         - name: CLUSTER_NAME
           value: myesdb
         resources:
-          limits:
-            cpu: 1000m
           requests:
-            cpu: 100m
+            cpu: 0.25
+          limits:
+            cpu: 1
         ports:
         - containerPort: 5601
           name: http
